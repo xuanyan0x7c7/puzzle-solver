@@ -1,0 +1,11 @@
+[package]
+name = "puzzle_solver"
+version = "0.1.0"
+authors = ["Xuan Yan <xuanyan@xuanyan.ws>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4"
+clap = "2.33"
+
+[dev-dependencies]
