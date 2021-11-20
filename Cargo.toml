@@ -4,8 +4,11 @@ version = "0.1.0"
 authors = ["Xuan Yan <xuanyan@xuanyan.ws>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 chrono = "0.4"
 clap = "2.33"
-
-[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
