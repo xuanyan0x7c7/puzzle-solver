@@ -245,6 +245,7 @@ pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool) {
         }
     };
 
+    let mut solution_found = false;
     if show_all_solutions {
         for (solution_index, solution) in solver.solve().enumerate() {
             if solution_index != 0 {
@@ -252,11 +253,16 @@ pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool) {
             }
             println!("{}:", solution_index + 1);
             print_solution(&solution);
+            solution_found = true;
         }
     } else {
         for solution in solver.solve() {
             print_solution(&solution);
+            solution_found = true;
             break;
         }
+    }
+    if !solution_found {
+        println!("No solution found!");
     }
 }

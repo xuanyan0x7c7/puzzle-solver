@@ -3,7 +3,7 @@ mod cli;
 use chrono::NaiveDate;
 use clap::{App, Arg, SubCommand};
 
-use crate::cli::solve_calendar_puzzle;
+use crate::cli::{solve_calendar_puzzle, solve_sudoku_puzzle};
 
 fn main() {
     let matches = App::new("Puzzle Solver")
@@ -14,9 +14,36 @@ fn main() {
                 .about("Solve Calendar Puzzle")
                 .arg(
                     Arg::with_name("date")
-                        .help("Date to solve")
                         .required(true)
-                        .index(1),
+                        .index(1)
+                        .help("Date to solve"),
+                )
+                .arg(
+                    Arg::with_name("all")
+                        .short("a")
+                        .long("all")
+                        .help("show all solutions"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("sudoku")
+                .about("Solve Sudoku Puzzle")
+                .arg(
+                    Arg::with_name("board")
+                        .required(true)
+                        .index(1)
+                        .help("Board string"),
+                )
+                .arg(
+                    Arg::with_name("size")
+                        .long("size")
+                        .default_value("9")
+                        .help("Board size"),
+                )
+                .arg(
+                    Arg::with_name("alphabet")
+                        .long("alphabet")
+                        .help("Alphabet table"),
                 )
                 .arg(
                     Arg::with_name("all")
@@ -26,18 +53,28 @@ fn main() {
                 ),
         )
         .get_matches();
+
     match matches.subcommand() {
         ("calendar", Some(subcommand)) => {
             let input = subcommand.value_of("date").unwrap();
             match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
                 Ok(date) => {
-                    let show_all_solutions = subcommand.is_present("all");
-                    solve_calendar_puzzle(date, show_all_solutions);
+                    solve_calendar_puzzle(date, subcommand.is_present("all"));
                 }
                 Err(_) => {
                     eprintln!("Invalid date: {}", input);
                 }
             }
+        }
+        ("sudoku", Some(subcommand)) => {
+            let size_string = subcommand.value_of("size").unwrap();
+            let board_string = subcommand.value_of("board").unwrap();
+            solve_sudoku_puzzle(
+                if size_string == "16" { (4, 4) } else { (3, 3) },
+                board_string,
+                subcommand.value_of("alphabet"),
+                subcommand.is_present("all"),
+            );
         }
         _ => {}
     }
