@@ -115,6 +115,20 @@ impl DancingLinks {
         self.column_list.push(column);
     }
 
+    pub fn select(&mut self, row: usize) {
+        let row_head = self.row_list[row].head;
+        let mut row_nodes = vec![row_head];
+        let mut node = self.right[row_head];
+        while node != row_head {
+            row_nodes.push(node);
+            node = self.right[node];
+        }
+        for node in row_nodes {
+            self.remove(self.node_list[node].column);
+        }
+        self.row_list[row].choose = true;
+    }
+
     fn remove(&mut self, column: usize) {
         let column_head = self.column_list[column].head;
         self.right[self.left[column_head]] = self.right[column_head];
