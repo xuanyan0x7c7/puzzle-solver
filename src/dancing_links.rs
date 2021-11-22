@@ -129,6 +129,22 @@ impl DancingLinks {
         self.row_list[row].choose = true;
     }
 
+    pub fn deselect(&mut self, row: usize) {
+        let row_head = self.row_list[row].head;
+        let mut node = row_head;
+        loop {
+            if self.down[self.up[node]] == node {
+                self.down[self.up[node]] = self.down[node];
+                self.up[self.down[node]] = self.up[node];
+                self.column_list[self.node_list[node].column].count -= 1;
+            }
+            node = self.right[node];
+            if node == row_head {
+                break;
+            }
+        }
+    }
+
     fn remove(&mut self, column: usize) {
         let column_head = self.column_list[column].head;
         self.right[self.left[column_head]] = self.right[column_head];

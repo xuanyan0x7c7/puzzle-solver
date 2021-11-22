@@ -26,6 +26,14 @@ impl PuzzleSolver {
             .add_constraint(&rows.into_serde::<Vec<usize>>().unwrap(), unique);
     }
 
+    pub fn select(&mut self, row: usize) {
+        self.solver.select(row);
+    }
+
+    pub fn deselect(&mut self, row: usize) {
+        self.solver.deselect(row);
+    }
+
     #[wasm_bindgen(js_name = solveNext)]
     pub fn solve_next(&mut self) -> JsValue {
         match self.solver.solve_next() {
