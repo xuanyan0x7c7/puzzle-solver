@@ -22,7 +22,12 @@ fn main() {
                     Arg::with_name("all")
                         .short("a")
                         .long("all")
-                        .help("show all solutions"),
+                        .help("Show all solutions"),
+                )
+                .arg(
+                    Arg::with_name("count")
+                        .long("count")
+                        .help("Count Solutions"),
                 ),
         )
         .subcommand(
@@ -49,7 +54,12 @@ fn main() {
                     Arg::with_name("all")
                         .short("a")
                         .long("all")
-                        .help("show all solutions"),
+                        .help("Show all solutions"),
+                )
+                .arg(
+                    Arg::with_name("count")
+                        .long("count")
+                        .help("Count Solutions"),
                 ),
         )
         .get_matches();
@@ -59,7 +69,11 @@ fn main() {
             let input = subcommand.value_of("date").unwrap();
             match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
                 Ok(date) => {
-                    solve_calendar_puzzle(date, subcommand.is_present("all"));
+                    solve_calendar_puzzle(
+                        date,
+                        subcommand.is_present("all"),
+                        subcommand.is_present("count"),
+                    );
                 }
                 Err(_) => {
                     eprintln!("Invalid date: {}", input);
@@ -74,6 +88,7 @@ fn main() {
                 board_string,
                 subcommand.value_of("alphabet"),
                 subcommand.is_present("all"),
+                subcommand.is_present("count"),
             );
         }
         _ => {}

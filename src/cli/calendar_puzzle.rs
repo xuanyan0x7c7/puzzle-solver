@@ -77,7 +77,7 @@ fn generate_tiles(basic_tile: &Tile) -> Vec<Tile> {
     tile_set.into_iter().collect()
 }
 
-pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool) {
+pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool, count_solutions: bool) {
     let board_size = (9, 6);
     let basic_tile_list = vec![
         Tile::new(vec![
@@ -245,7 +245,7 @@ pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool) {
         }
     };
 
-    let mut solution_found = false;
+    let mut solution_count = 0usize;
     if show_all_solutions {
         for (solution_index, solution) in solver.solve().enumerate() {
             if solution_index != 0 {
@@ -253,16 +253,27 @@ pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool) {
             }
             println!("{}:", solution_index + 1);
             print_solution(&solution);
-            solution_found = true;
+            solution_count += 1;
         }
     } else {
-        for solution in solver.solve() {
-            print_solution(&solution);
-            solution_found = true;
-            break;
+        for (solution_index, solution) in solver.solve().enumerate() {
+            if solution_index == 0 {
+                print_solution(&solution);
+            }
+            solution_count += 1;
+            if !count_solutions {
+                break;
+            }
         }
     }
-    if !solution_found {
+    if solution_count == 0 {
         println!("No solution found!");
+    } else if count_solutions {
+        println!();
+        println!(
+            "Total {} solution{}.",
+            solution_count,
+            if solution_count == 1 { "" } else { "s" }
+        );
     }
 }

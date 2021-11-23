@@ -5,6 +5,7 @@ pub fn solve_sudoku_puzzle(
     board_string: &str,
     alphabet: Option<&str>,
     show_all_solutions: bool,
+    count_solutions: bool,
 ) {
     let board_size = box_size.0 * box_size.1;
     let alphabet = match alphabet {
@@ -139,7 +140,7 @@ pub fn solve_sudoku_puzzle(
         println!("-+");
     };
 
-    let mut solution_found = false;
+    let mut solution_count = 0usize;
     if show_all_solutions {
         for (solution_index, solution) in solver.solve().enumerate() {
             if solution_index != 0 {
@@ -147,16 +148,27 @@ pub fn solve_sudoku_puzzle(
             }
             println!("{}: ", solution_index + 1);
             print_solution(&solution);
-            solution_found = true;
+            solution_count += 1;
         }
     } else {
-        for solution in solver.solve() {
-            print_solution(&solution);
-            solution_found = true;
-            break;
+        for (solution_index, solution) in solver.solve().enumerate() {
+            if solution_index == 0 {
+                print_solution(&solution);
+            }
+            solution_count += 1;
+            if !count_solutions {
+                break;
+            }
         }
     }
-    if !solution_found {
+    if solution_count == 0 {
         println!("No solution found!");
+    } else if count_solutions {
+        println!();
+        println!(
+            "Total {} solution{}.",
+            solution_count,
+            if solution_count == 1 { "" } else { "s" }
+        );
     }
 }
