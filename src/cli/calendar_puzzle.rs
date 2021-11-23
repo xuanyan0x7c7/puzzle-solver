@@ -245,19 +245,84 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                 board[(y + point.y) as usize][(x + point.x) as usize] = basic_tile_index + 1;
             }
         }
-        for row in board.iter() {
-            for (column_index, column) in row.iter().enumerate() {
-                if column_index != 0 {
-                    print!(" ");
-                }
-                if *column == 0 {
-                    print!(" ");
+        print!("+");
+        for column_index in 0..board_size.1 as usize {
+            if column_index > 0 {
+                let row = &board[0];
+                if row[column_index - 1] == row[column_index] {
+                    print!("-");
                 } else {
-                    print!("{}", column);
+                    print!("+");
                 }
             }
-            println!();
+            print!("---");
         }
+        println!("+");
+        for (row_index, row) in board.iter().enumerate() {
+            if row_index > 0 {
+                if board[row_index - 1][0] == board[row_index][0] {
+                    print!("|");
+                } else {
+                    print!("+");
+                }
+                for column_index in 0..board_size.1 as usize {
+                    let top_right = board[row_index - 1][column_index];
+                    let bottom_right = row[column_index];
+                    if column_index > 0 {
+                        let top_left = board[row_index - 1][column_index - 1];
+                        let bottom_left = row[column_index - 1];
+                        if top_left == top_right {
+                            if bottom_left == bottom_right {
+                                print!("{}", if top_left == bottom_left { " " } else { "-" });
+                            } else {
+                                print!("+");
+                            }
+                        } else if top_left == bottom_left {
+                            print!("{}", if top_right == bottom_right { "|" } else { "+" });
+                        } else {
+                            print!("+");
+                        }
+                    }
+                    if top_right == bottom_right {
+                        print!("   ");
+                    } else {
+                        print!("---");
+                    }
+                }
+                if board[row_index - 1][board_size.1 as usize - 1]
+                    == board[row_index][board_size.1 as usize - 1]
+                {
+                    println!("|");
+                } else {
+                    println!("+");
+                }
+            }
+            print!("|");
+            for (column_index, color) in row.iter().enumerate() {
+                if column_index != 0 {
+                    if row[column_index - 1] == *color {
+                        print!(" ");
+                    } else {
+                        print!("|");
+                    }
+                }
+                print!(" {} ", if *color == 0 { "x" } else { " " });
+            }
+            println!("|");
+        }
+        print!("+");
+        for column_index in 0..board_size.1 as usize {
+            if column_index > 0 {
+                let row = &board[board_size.0 as usize - 1];
+                if row[column_index - 1] == row[column_index] {
+                    print!("-");
+                } else {
+                    print!("+");
+                }
+            }
+            print!("---");
+        }
+        println!("+");
     };
 
     let mut solution_count = 0usize;
