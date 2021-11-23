@@ -1,5 +1,8 @@
 mod cli;
 
+use std::io::stdin;
+use std::process;
+
 use chrono::NaiveDate;
 use clap::{App, Arg, SubCommand};
 
@@ -33,12 +36,6 @@ fn main() {
         .subcommand(
             SubCommand::with_name("sudoku")
                 .about("Solve Sudoku Puzzle")
-                .arg(
-                    Arg::with_name("board")
-                        .required(true)
-                        .index(1)
-                        .help("Board string"),
-                )
                 .arg(
                     Arg::with_name("size")
                         .long("size")
@@ -100,7 +97,14 @@ fn main() {
                     (box_row.unwrap(), box_column.unwrap())
                 }
             };
-            let board_string = subcommand.value_of("board").unwrap();
+            let mut input = String::new();
+            let board_string = match stdin().read_line(&mut input) {
+                Ok(_) => input.trim_end(),
+                Err(error) => {
+                    eprintln!("Error: {}", error);
+                    process::exit(1);
+                }
+            };
             solve_sudoku_puzzle(
                 box_size,
                 board_string,
