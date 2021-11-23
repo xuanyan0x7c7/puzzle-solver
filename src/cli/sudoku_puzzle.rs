@@ -1,12 +1,42 @@
+use std::io::stdin;
+use std::process;
+
+use clap::ArgMatches;
+
 use puzzle_solver::DancingLinks;
 
-pub fn solve_sudoku_puzzle(
-    box_size: (usize, usize),
-    board_string: &str,
-    alphabet: Option<&str>,
-    show_all_solutions: bool,
-    count_solutions: bool,
-) {
+pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
+    let size_string = subcommand.value_of("size").unwrap();
+    let box_size = if size_string == "4" {
+        (2, 2)
+    } else if size_string == "9" {
+        (3, 3)
+    } else if size_string == "16" {
+        (4, 4)
+    } else if size_string == "25" {
+        (5, 5)
+    } else {
+        let l: Vec<&str> = size_string.split("x").collect();
+        let box_row = l[0].parse();
+        let box_column = l[1].parse();
+        if box_row.is_err() || box_column.is_err() {
+            (3, 3)
+        } else {
+            (box_row.unwrap(), box_column.unwrap())
+        }
+    };
+    let mut input = String::new();
+    let board_string = match stdin().read_line(&mut input) {
+        Ok(_) => input.trim_end(),
+        Err(error) => {
+            eprintln!("Error: {}", error);
+            process::exit(1);
+        }
+    };
+    let alphabet = subcommand.value_of("alphabet");
+    let show_all_solutions = subcommand.is_present("all");
+    let count_solutions = subcommand.is_present("count");
+
     let board_size = box_size.0 * box_size.1;
     let alphabet = match alphabet {
         Some(string) => string,

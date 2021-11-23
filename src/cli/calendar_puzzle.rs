@@ -1,6 +1,10 @@
-use chrono::{Datelike, Weekday};
-use puzzle_solver::DancingLinks;
 use std::collections::{HashMap, HashSet};
+use std::process;
+
+use chrono::{Datelike, NaiveDate, Weekday};
+use clap::ArgMatches;
+
+use puzzle_solver::DancingLinks;
 
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Point {
@@ -77,7 +81,18 @@ fn generate_tiles(basic_tile: &Tile) -> Vec<Tile> {
     tile_set.into_iter().collect()
 }
 
-pub fn solve_calendar_puzzle(date: impl Datelike, show_all_solutions: bool, count_solutions: bool) {
+pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
+    let date_string = subcommand.value_of("date").unwrap();
+    let date = match NaiveDate::parse_from_str(date_string, "%Y-%m-%d") {
+        Ok(date) => date,
+        Err(_) => {
+            eprintln!("Invalid date: {}", date_string);
+            process::exit(1);
+        }
+    };
+    let show_all_solutions = subcommand.is_present("all");
+    let count_solutions = subcommand.is_present("count");
+
     let board_size = (9, 6);
     let basic_tile_list = vec![
         Tile::new(vec![
