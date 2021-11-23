@@ -82,9 +82,27 @@ fn main() {
         }
         ("sudoku", Some(subcommand)) => {
             let size_string = subcommand.value_of("size").unwrap();
+            let box_size = if size_string == "4" {
+                (2, 2)
+            } else if size_string == "9" {
+                (3, 3)
+            } else if size_string == "16" {
+                (4, 4)
+            } else if size_string == "25" {
+                (5, 5)
+            } else {
+                let l: Vec<&str> = size_string.split("x").collect();
+                let box_row = l[0].parse();
+                let box_column = l[1].parse();
+                if box_row.is_err() || box_column.is_err() {
+                    (3, 3)
+                } else {
+                    (box_row.unwrap(), box_column.unwrap())
+                }
+            };
             let board_string = subcommand.value_of("board").unwrap();
             solve_sudoku_puzzle(
-                if size_string == "16" { (4, 4) } else { (3, 3) },
+                box_size,
                 board_string,
                 subcommand.value_of("alphabet"),
                 subcommand.is_present("all"),
