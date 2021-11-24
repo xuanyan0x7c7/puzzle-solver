@@ -59,6 +59,17 @@ impl Tile {
                 .collect(),
         )
     }
+
+    fn gravity_support(&self) -> Vec<Point> {
+        self.points
+            .iter()
+            .map(|point| Point {
+                x: point.x,
+                y: point.y + 1,
+            })
+            .filter(|point| !self.points.contains(point))
+            .collect()
+    }
 }
 
 fn generate_tiles(basic_tile: &Tile) -> Vec<Tile> {
@@ -90,6 +101,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
             process::exit(1);
         }
     };
+    let has_gravity = !subcommand.is_present("no-gravity");
     let show_all_solutions = subcommand.is_present("all");
     let count_solutions = subcommand.is_present("count");
 
@@ -196,14 +208,21 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         for tile in tiles.iter() {
             for x in 0..board_size.1 {
                 for y in 0..board_size.0 {
-                    if tile.points.iter().all(|point| {
+                    let can_put = tile.points.iter().all(|point| {
                         x + point.x < board_size.1
                             && y + point.y < board_size.0
                             && !holes.contains(&Point {
                                 x: x + point.x,
                                 y: y + point.y,
                             })
-                    }) {
+                    });
+                    let will_fall = tile.gravity_support().iter().all(|point| {
+                        holes.contains(&Point {
+                            x: x + point.x,
+                            y: y + point.y,
+                        })
+                    });
+                    if can_put && (!has_gravity || !will_fall) {
                         for point in tile.points.iter() {
                             let overlapping_point = Point {
                                 x: x + point.x,

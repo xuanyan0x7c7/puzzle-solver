@@ -18,6 +18,11 @@ fn main() {
                         .help("Date to solve"),
                 )
                 .arg(
+                    Arg::with_name("no-gravity")
+                        .long("no-gravity")
+                        .help("No gravity"),
+                )
+                .arg(
                     Arg::with_name("all")
                         .short("a")
                         .long("all")
