@@ -160,9 +160,9 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
             Point { x: 0, y: 0 },
             Point { x: 1, y: 0 },
             Point { x: 1, y: 1 },
-            Point { x: 1, y: 2 },
-            Point { x: 1, y: 3 },
             Point { x: 2, y: 1 },
+            Point { x: 3, y: 1 },
+            Point { x: 1, y: 2 },
         ]),
     ];
     let holes = vec![
