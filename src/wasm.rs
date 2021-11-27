@@ -21,18 +21,20 @@ impl PuzzleSolver {
         self.solver.add_rows(row_count as usize);
     }
 
-    #[wasm_bindgen(js_name = addConstraint)]
-    pub fn add_constraint(&mut self, rows: &JsValue, unique: bool) {
+    #[wasm_bindgen(js_name = addColumn)]
+    pub fn add_column(&mut self, rows: &JsValue, unique: bool) {
         self.solver
-            .add_constraint(&rows.into_serde::<Vec<usize>>().unwrap(), unique);
+            .add_column(&rows.into_serde::<Vec<usize>>().unwrap(), unique);
     }
 
-    pub fn select(&mut self, row: usize) {
-        self.solver.select(row);
+    #[wasm_bindgen(js_name = selectRow)]
+    pub fn select_row(&mut self, row: usize) {
+        self.solver.select_row(row);
     }
 
-    pub fn deselect(&mut self, row: usize) {
-        self.solver.deselect(row);
+    #[wasm_bindgen(js_name = deselectRow)]
+    pub fn deselect_row(&mut self, row: usize) {
+        self.solver.deselect_row(row);
     }
 
     #[wasm_bindgen(js_name = solveNext)]

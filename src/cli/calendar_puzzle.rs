@@ -252,7 +252,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
 
     for list in overlap_mapping.values() {
         if !list.is_empty() {
-            solver.add_constraint(list, true);
+            solver.add_column(list, true);
         }
     }
 
