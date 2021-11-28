@@ -10,7 +10,7 @@ struct Row {
 
 enum ColumnType {
     Unique,
-    CombinationalUnique,
+    ConditionalUnique(usize),
     Constraint,
 }
 
@@ -21,60 +21,66 @@ struct Column {
 }
 
 impl Column {
-    fn is_combinational_unique(&self) -> bool {
+    fn conditional_index(&self) -> Option<usize> {
         match self.column_type {
-            ColumnType::CombinationalUnique => true,
-            _ => false,
+            ColumnType::ConditionalUnique(index) => Some(index),
+            _ => None,
         }
     }
 }
 
-struct State {
-    column: usize,
-    row_node: usize,
-    trigger_chaining: bool,
+struct ConditionState {
+    head: usize,
+    holes: usize,
+    current_holes: usize,
+    chaining: bool,
+}
+
+enum State {
+    New,
+    CurrentState(usize, usize),
+    TriggerChaining(usize),
 }
 
 pub struct DancingLinks {
     node_list: Vec<Node>,
     row_list: Vec<Row>,
     column_list: Vec<Column>,
+    condition_state_list: Vec<ConditionState>,
     up: Vec<usize>,
     down: Vec<usize>,
     left: Vec<usize>,
     right: Vec<usize>,
     state_stack: Vec<State>,
-    holes: usize,
-    current_holes: usize,
-    chaining: bool,
 }
 
 impl DancingLinks {
     pub fn new() -> Self {
-        Self::new_with_holes(0)
-    }
-
-    pub fn new_with_holes(holes: usize) -> Self {
         let mut board = Self {
             node_list: vec![],
             row_list: vec![],
             column_list: vec![],
+            condition_state_list: vec![],
             up: vec![],
             down: vec![],
             left: vec![],
             right: vec![],
-            state_stack: vec![State {
-                column: usize::MAX,
-                row_node: usize::MAX,
-                trigger_chaining: false,
-            }],
+            state_stack: vec![State::New],
+        };
+        board.new_head_node();
+        board
+    }
+
+    pub fn new_conditional_constraint(&mut self, holes: usize) -> usize {
+        let index = self.condition_state_list.len();
+        let head = self.new_head_node();
+        self.condition_state_list.push(ConditionState {
+            head,
             holes,
             current_holes: 0,
             chaining: false,
-        };
-        board.new_head_node();
-        board.new_head_node();
-        board
+        });
+        index
     }
 
     fn new_node(
@@ -122,7 +128,7 @@ impl DancingLinks {
             column_index,
             match column_type {
                 ColumnType::Unique => 0,
-                ColumnType::CombinationalUnique => 1,
+                ColumnType::ConditionalUnique(index) => self.condition_state_list[index].head,
                 ColumnType::Constraint => usize::MAX,
             },
             usize::MAX,
@@ -134,9 +140,10 @@ impl DancingLinks {
         }
     }
 
-    pub fn add_rows(&mut self, row_count: usize) {
+    pub fn add_rows(&mut self, row_count: usize) -> usize {
         let column_index = self.column_list.len();
         let column = self.new_column(ColumnType::Unique, row_count);
+        let row_index = self.row_list.len();
         for _ in 0..row_count {
             let row = Row {
                 head: self.new_node(self.row_list.len(), column_index, usize::MAX, column.head),
@@ -145,18 +152,21 @@ impl DancingLinks {
             self.row_list.push(row);
         }
         self.column_list.push(column);
+        row_index
     }
 
-    pub fn add_column(&mut self, rows: &Vec<usize>, unique: bool) {
+    pub fn add_column(&mut self, rows: &Vec<usize>) {
         let column_index = self.column_list.len();
-        let column = self.new_column(
-            if unique {
-                ColumnType::Unique
-            } else {
-                ColumnType::CombinationalUnique
-            },
-            rows.len(),
-        );
+        let column = self.new_column(ColumnType::Unique, rows.len());
+        for row in rows {
+            self.new_node(*row, column_index, self.row_list[*row].head, column.head);
+        }
+        self.column_list.push(column);
+    }
+
+    pub fn add_conditional_column(&mut self, rows: &Vec<usize>, conditional_index: usize) {
+        let column_index = self.column_list.len();
+        let column = self.new_column(ColumnType::ConditionalUnique(conditional_index), rows.len());
         for row in rows {
             self.new_node(*row, column_index, self.row_list[*row].head, column.head);
         }
@@ -193,8 +203,10 @@ impl DancingLinks {
             if self.down[self.up[node]] == node {
                 let column_item = &mut self.column_list[self.node_list[node].column];
                 column_item.count -= 1;
-                if column_item.is_combinational_unique() && column_item.count == 0 {
-                    self.current_holes += 1;
+                if column_item.count == 0 {
+                    if let Some(index) = column_item.conditional_index() {
+                        self.condition_state_list[index].current_holes += 1;
+                    }
                 }
                 self.down[self.up[node]] = self.down[node];
                 self.up[self.down[node]] = self.up[node];
@@ -208,8 +220,10 @@ impl DancingLinks {
 
     fn remove_column(&mut self, column: usize) {
         let column_item = &mut self.column_list[column];
-        if column_item.is_combinational_unique() && column_item.count == 0 {
-            self.current_holes -= 1;
+        if column_item.count == 0 {
+            if let Some(index) = column_item.conditional_index() {
+                self.condition_state_list[index].current_holes -= 1;
+            }
         }
         let column_head = column_item.head;
         self.right[self.left[column_head]] = self.right[column_head];
@@ -220,8 +234,10 @@ impl DancingLinks {
             while column_node != row_node {
                 let column_item = &mut self.column_list[self.node_list[column_node].column];
                 column_item.count -= 1;
-                if column_item.is_combinational_unique() && column_item.count == 0 {
-                    self.current_holes += 1;
+                if column_item.count == 0 {
+                    if let Some(index) = column_item.conditional_index() {
+                        self.condition_state_list[index].current_holes += 1;
+                    }
                 }
                 self.down[self.up[column_node]] = self.down[column_node];
                 self.up[self.down[column_node]] = self.up[column_node];
@@ -233,8 +249,10 @@ impl DancingLinks {
 
     fn resume_column(&mut self, column: usize) {
         let column_item = &mut self.column_list[column];
-        if column_item.is_combinational_unique() && column_item.count == 0 {
-            self.current_holes += 1;
+        if column_item.count == 0 {
+            if let Some(index) = column_item.conditional_index() {
+                self.condition_state_list[index].current_holes += 1;
+            }
         }
         let column_head = column_item.head;
         self.right[self.left[column_head]] = column_head;
@@ -245,8 +263,10 @@ impl DancingLinks {
             while column_node != row_node {
                 let column_item = &mut self.column_list[self.node_list[column_node].column];
                 column_item.count += 1;
-                if column_item.is_combinational_unique() && column_item.count == 1 {
-                    self.current_holes -= 1;
+                if column_item.count == 1 {
+                    if let Some(index) = column_item.conditional_index() {
+                        self.condition_state_list[index].current_holes -= 1;
+                    }
                 }
                 self.down[self.up[column_node]] = column_node;
                 self.up[self.down[column_node]] = column_node;
@@ -262,123 +282,118 @@ impl DancingLinks {
 
     pub(crate) fn solve_next(&mut self) -> Option<Vec<usize>> {
         loop {
-            let stack_top = self.state_stack.pop();
-            if stack_top.is_none() {
-                return None;
-            }
-            let state = stack_top.unwrap();
-            if state.column != usize::MAX {
-                let mut column_node = self.left[state.row_node];
-                while column_node != state.row_node {
-                    self.resume_column(self.node_list[column_node].column);
-                    column_node = self.left[column_node];
-                }
-                self.row_list[self.node_list[state.row_node].row].chosen = false;
-                let row_node = self.down[state.row_node];
-                if row_node == self.column_list[state.column].head {
-                    self.resume_column(state.column);
-                    if state.trigger_chaining {
-                        self.chaining = false;
-                    }
-                    continue;
-                } else {
-                    self.row_list[self.node_list[row_node].row].chosen = true;
-                    let mut column_node = self.right[row_node];
-                    while column_node != row_node {
-                        self.remove_column(self.node_list[column_node].column);
-                        column_node = self.right[column_node];
-                    }
-                    self.state_stack.push(State {
-                        column: state.column,
-                        row_node,
-                        trigger_chaining: state.trigger_chaining,
-                    });
-                }
-            }
-            if self.right[0] == 0 {
-                return Some(
-                    self.row_list
+            match self.state_stack.pop()? {
+                State::New => {
+                    if self
+                        .condition_state_list
                         .iter()
-                        .enumerate()
-                        .filter(|(_, row)| row.chosen)
-                        .map(|(index, _)| index)
-                        .collect(),
-                );
-            }
-            if self.holes > 0 && self.current_holes > self.holes {
-                continue;
-            }
-            let trigger_chaining =
-                !self.chaining && self.holes > 0 && self.current_holes == self.holes;
-            if trigger_chaining {
-                self.chaining = true;
-            }
-            let min_column = self.pick_best_column();
-            if min_column.is_none() {
-                if trigger_chaining {
-                    self.chaining = false;
+                        .any(|state| state.current_holes > state.holes)
+                    {
+                        continue;
+                    }
+                    if self.right[0] == 0 {
+                        return Some(
+                            self.row_list
+                                .iter()
+                                .enumerate()
+                                .filter(|(_, row)| row.chosen)
+                                .map(|(index, _)| index)
+                                .collect(),
+                        );
+                    }
+                    for (index, state) in self.condition_state_list.iter_mut().enumerate() {
+                        if !state.chaining && state.current_holes == state.holes {
+                            state.chaining = true;
+                            self.state_stack.push(State::TriggerChaining(index));
+                        }
+                    }
+                    let min_column = self.pick_best_column();
+                    if min_column.is_none() {
+                        continue;
+                    }
+                    let best_column = min_column.unwrap();
+                    self.remove_column(best_column);
+                    let column_head = self.column_list[best_column].head;
+                    let row_node = self.down[column_head];
+                    if row_node != column_head {
+                        self.row_list[self.node_list[row_node].row].chosen = true;
+                        let mut column_node = self.right[row_node];
+                        while column_node != row_node {
+                            self.remove_column(self.node_list[column_node].column);
+                            column_node = self.right[column_node];
+                        }
+                        self.state_stack
+                            .push(State::CurrentState(best_column, row_node));
+                        self.state_stack.push(State::New);
+                    }
                 }
-                continue;
-            }
-            let best_column = min_column.unwrap();
-            self.remove_column(best_column);
-            let column_head = self.column_list[best_column].head;
-            let row_node = self.down[column_head];
-            if row_node != column_head {
-                self.row_list[self.node_list[row_node].row].chosen = true;
-                let mut column_node = self.right[row_node];
-                while column_node != row_node {
-                    self.remove_column(self.node_list[column_node].column);
-                    column_node = self.right[column_node];
+                State::CurrentState(current_column, current_row_node) => {
+                    let mut column_node = self.left[current_row_node];
+                    while column_node != current_row_node {
+                        self.resume_column(self.node_list[column_node].column);
+                        column_node = self.left[column_node];
+                    }
+                    self.row_list[self.node_list[current_row_node].row].chosen = false;
+                    let row_node = self.down[current_row_node];
+                    if row_node == self.column_list[current_column].head {
+                        self.resume_column(current_column);
+                        continue;
+                    } else {
+                        self.row_list[self.node_list[row_node].row].chosen = true;
+                        let mut column_node = self.right[row_node];
+                        while column_node != row_node {
+                            self.remove_column(self.node_list[column_node].column);
+                            column_node = self.right[column_node];
+                        }
+                        self.state_stack
+                            .push(State::CurrentState(current_column, row_node));
+                        self.state_stack.push(State::New);
+                    }
                 }
-                self.state_stack.push(State {
-                    column: best_column,
-                    row_node,
-                    trigger_chaining,
-                });
-                self.state_stack.push(State {
-                    column: usize::MAX,
-                    row_node: usize::MAX,
-                    trigger_chaining: false,
-                });
+                State::TriggerChaining(index) => {
+                    self.condition_state_list[index].chaining = false;
+                }
             }
         }
     }
 
     fn pick_best_column(&self) -> Option<usize> {
-        let mut min = (usize::MAX, usize::MAX);
+        let mut min_count = usize::MAX;
+        let mut min_column = usize::MAX;
         let mut column_head = self.right[0];
         while column_head != 0 {
             let column = self.node_list[column_head].column;
             let count = self.column_list[column].count;
-            if count < min.0 {
+            if count < min_count {
                 if count == 1 {
                     return Some(column);
                 } else if count == 0 {
                     return None;
                 }
-                min.0 = count;
-                min.1 = column;
+                min_count = count;
+                min_column = column;
             }
             column_head = self.right[column_head];
         }
-        if self.chaining {
-            let mut column_head = self.right[1];
-            while column_head != 1 {
-                let column = self.node_list[column_head].column;
-                let count = self.column_list[column].count;
-                if count < min.0 {
-                    if count == 1 {
-                        return Some(column);
-                    } else if count > 0 {
-                        min.0 = count;
-                        min.1 = column;
+        for state in self.condition_state_list.iter() {
+            if state.chaining {
+                let mut column_head = self.right[state.head];
+                while column_head != state.head {
+                    let column = self.node_list[column_head].column;
+                    let count = self.column_list[column].count;
+                    if count < min_count {
+                        if count == 1 {
+                            return Some(column);
+                        } else if count > 0 {
+                            min_count = count;
+                            min_column = column;
+                        }
                     }
+                    column_head = self.right[column_head];
                 }
-                column_head = self.right[column_head];
             }
         }
-        Some(min.1)
+        Some(min_column)
     }
 }
 

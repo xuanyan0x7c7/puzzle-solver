@@ -19,9 +19,7 @@ struct Tile {
 
 impl Tile {
     fn new(points: Vec<Point>) -> Self {
-        let mut tile = Tile {
-            points: points.clone(),
-        };
+        let mut tile = Tile { points };
         tile.points.sort();
         tile.adjust();
         tile
@@ -252,7 +250,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
 
     for list in overlap_mapping.values() {
         if !list.is_empty() {
-            solver.add_column(list, true);
+            solver.add_column(list);
         }
     }
 

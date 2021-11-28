@@ -73,7 +73,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             for column in 0..board_size {
                 list.push((row * board_size + column) * board_size + number);
             }
-            solver.add_column(&list, true);
+            solver.add_column(&list);
         }
     }
     for column in 0..board_size {
@@ -82,7 +82,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             for row in 0..board_size {
                 list.push((row * board_size + column) * board_size + number);
             }
-            solver.add_column(&list, true);
+            solver.add_column(&list);
         }
     }
     for sudoku_box in 0..board_size {
@@ -95,7 +95,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
                     list.push((row * board_size + column) * board_size + number);
                 }
             }
-            solver.add_column(&list, true);
+            solver.add_column(&list);
         }
     }
     for row in 0..board_size {
