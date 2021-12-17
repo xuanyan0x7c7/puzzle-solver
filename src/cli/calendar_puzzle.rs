@@ -262,25 +262,25 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                 board[(y + point.y) as usize][(x + point.x) as usize] = basic_tile_index + 1;
             }
         }
-        print!("+");
+        print!("┌");
         for column_index in 0..board_size.1 as usize {
             if column_index > 0 {
                 let row = &board[0];
                 if row[column_index - 1] == row[column_index] {
-                    print!("-");
+                    print!("─");
                 } else {
-                    print!("+");
+                    print!("┬");
                 }
             }
-            print!("---");
+            print!("───");
         }
-        println!("+");
+        println!("┐");
         for (row_index, row) in board.iter().enumerate() {
             if row_index > 0 {
                 if board[row_index - 1][0] == board[row_index][0] {
-                    print!("|");
+                    print!("│");
                 } else {
-                    print!("+");
+                    print!("├");
                 }
                 for column_index in 0..board_size.1 as usize {
                     let top_right = board[row_index - 1][column_index];
@@ -290,56 +290,74 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                         let bottom_left = row[column_index - 1];
                         if top_left == top_right {
                             if bottom_left == bottom_right {
-                                print!("{}", if top_left == bottom_left { " " } else { "-" });
+                                print!("{}", if top_left == bottom_left { " " } else { "─" });
+                            } else if top_left == bottom_left {
+                                print!("┌");
+                            } else if top_right == bottom_right {
+                                print!("┐");
                             } else {
-                                print!("+");
+                                print!("┬");
+                            }
+                        } else if bottom_left == bottom_right {
+                            if top_left == bottom_left {
+                                print!("└");
+                            } else if top_right == bottom_right {
+                                print!("┘");
+                            } else {
+                                print!("┴");
                             }
                         } else if top_left == bottom_left {
-                            print!("{}", if top_right == bottom_right { "|" } else { "+" });
+                            if top_right == bottom_right {
+                                print!("│");
+                            } else {
+                                print!("├");
+                            }
+                        } else if top_right == bottom_right {
+                            print!("┤");
                         } else {
-                            print!("+");
+                            print!("┼");
                         }
                     }
                     if top_right == bottom_right {
                         print!("   ");
                     } else {
-                        print!("---");
+                        print!("───");
                     }
                 }
                 if board[row_index - 1][board_size.1 as usize - 1]
                     == board[row_index][board_size.1 as usize - 1]
                 {
-                    println!("|");
+                    println!("│");
                 } else {
-                    println!("+");
+                    println!("┤");
                 }
             }
-            print!("|");
+            print!("│");
             for (column_index, color) in row.iter().enumerate() {
                 if column_index != 0 {
                     if row[column_index - 1] == *color {
                         print!(" ");
                     } else {
-                        print!("|");
+                        print!("│");
                     }
                 }
                 print!(" {} ", if *color == 0 { "x" } else { " " });
             }
-            println!("|");
+            println!("│");
         }
-        print!("+");
+        print!("└");
         for column_index in 0..board_size.1 as usize {
             if column_index > 0 {
                 let row = &board[board_size.0 as usize - 1];
                 if row[column_index - 1] == row[column_index] {
-                    print!("-");
+                    print!("─");
                 } else {
-                    print!("+");
+                    print!("┴");
                 }
             }
-            print!("---");
+            print!("───");
         }
-        println!("+");
+        println!("┘");
     };
 
     let mut solution_count = 0usize;
