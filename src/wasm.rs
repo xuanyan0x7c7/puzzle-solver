@@ -1,10 +1,10 @@
 use wasm_bindgen::prelude::*;
 
-use crate::*;
+use crate::PuzzleSolver as Solver;
 
 #[wasm_bindgen]
 pub struct PuzzleSolver {
-    solver: DancingLinks,
+    solver: Solver,
 }
 
 #[wasm_bindgen]
@@ -12,7 +12,7 @@ impl PuzzleSolver {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         PuzzleSolver {
-            solver: DancingLinks::new(),
+            solver: Solver::new(),
         }
     }
 
@@ -28,20 +28,21 @@ impl PuzzleSolver {
 
     #[wasm_bindgen(js_name = addColumn)]
     pub fn add_column(&mut self, rows: &JsValue) {
-        self.solver
-            .add_column(&rows.into_serde::<Vec<usize>>().unwrap());
+        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
+        self.solver.add_column(transformed_rows.into_iter());
     }
 
     #[wasm_bindgen(js_name = addConditionalColumn)]
     pub fn add_conditional_column(&mut self, rows: &JsValue, conditional_index: usize) {
+        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
         self.solver
-            .add_conditional_column(&rows.into_serde::<Vec<usize>>().unwrap(), conditional_index);
+            .add_conditional_column(transformed_rows.into_iter(), conditional_index);
     }
 
     #[wasm_bindgen(js_name = addConstraint)]
     pub fn add_constraint(&mut self, rows: &JsValue) {
-        self.solver
-            .add_constraint(&rows.into_serde::<Vec<usize>>().unwrap());
+        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
+        self.solver.add_constraint(transformed_rows.into_iter());
     }
 
     #[wasm_bindgen(js_name = selectRow)]

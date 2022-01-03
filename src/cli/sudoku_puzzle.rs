@@ -3,7 +3,7 @@ use std::process;
 
 use clap::ArgMatches;
 
-use puzzle_solver::DancingLinks;
+use puzzle_solver::PuzzleSolver;
 
 pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     let size_string = subcommand.value_of("size").unwrap();
@@ -63,7 +63,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         }
     }
 
-    let mut solver = DancingLinks::new();
+    let mut solver = PuzzleSolver::new();
     for _ in 0..board_size * board_size {
         solver.add_rows(board_size);
     }
@@ -73,7 +73,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             for column in 0..board_size {
                 list.push((row * board_size + column) * board_size + number);
             }
-            solver.add_column(&list);
+            solver.add_column(list.into_iter());
         }
     }
     for column in 0..board_size {
@@ -82,7 +82,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             for row in 0..board_size {
                 list.push((row * board_size + column) * board_size + number);
             }
-            solver.add_column(&list);
+            solver.add_column(list.into_iter());
         }
     }
     for sudoku_box in 0..board_size {
@@ -95,7 +95,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
                     list.push((row * board_size + column) * board_size + number);
                 }
             }
-            solver.add_column(&list);
+            solver.add_column(list.into_iter());
         }
     }
     for row in 0..board_size {
@@ -110,7 +110,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
 
     let print_solution = |solution: &Vec<usize>| {
         let mut solution_board = vec![vec![0; board_size]; board_size];
-        for row in solution.iter() {
+        for &row in solution.iter() {
             solution_board[row / board_size / board_size][row / board_size % board_size] =
                 row % board_size + 1;
         }

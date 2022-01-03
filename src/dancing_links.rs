@@ -42,7 +42,7 @@ enum State {
     TriggerChaining(usize),
 }
 
-pub struct DancingLinks {
+pub struct PuzzleSolver {
     node_list: Vec<Node>,
     row_list: Vec<Row>,
     column_list: Vec<Column>,
@@ -54,7 +54,7 @@ pub struct DancingLinks {
     state_stack: Vec<State>,
 }
 
-impl DancingLinks {
+impl PuzzleSolver {
     pub fn new() -> Self {
         let mut board = Self {
             node_list: vec![],
@@ -155,29 +155,38 @@ impl DancingLinks {
         row_index
     }
 
-    pub fn add_column(&mut self, rows: &Vec<usize>) {
+    pub fn add_column<I>(&mut self, rows: I)
+    where
+        I: ExactSizeIterator + IntoIterator<Item = usize>,
+    {
         let column_index = self.column_list.len();
         let column = self.new_column(ColumnType::Unique, rows.len());
         for row in rows {
-            self.new_node(*row, column_index, self.row_list[*row].head, column.head);
+            self.new_node(row, column_index, self.row_list[row].head, column.head);
         }
         self.column_list.push(column);
     }
 
-    pub fn add_conditional_column(&mut self, rows: &Vec<usize>, conditional_index: usize) {
+    pub fn add_conditional_column<I>(&mut self, rows: I, conditional_index: usize)
+    where
+        I: ExactSizeIterator + IntoIterator<Item = usize>,
+    {
         let column_index = self.column_list.len();
         let column = self.new_column(ColumnType::ConditionalUnique(conditional_index), rows.len());
         for row in rows {
-            self.new_node(*row, column_index, self.row_list[*row].head, column.head);
+            self.new_node(row, column_index, self.row_list[row].head, column.head);
         }
         self.column_list.push(column);
     }
 
-    pub fn add_constraint(&mut self, rows: &Vec<usize>) {
+    pub fn add_constraint<I>(&mut self, rows: I)
+    where
+        I: ExactSizeIterator + IntoIterator<Item = usize>,
+    {
         let column_index = self.column_list.len();
         let column = self.new_column(ColumnType::Constraint, rows.len());
         for row in rows {
-            self.new_node(*row, column_index, self.row_list[*row].head, column.head);
+            self.new_node(row, column_index, self.row_list[row].head, column.head);
         }
         self.column_list.push(column);
     }
@@ -398,7 +407,7 @@ impl DancingLinks {
 }
 
 pub struct SolverIterator<'a> {
-    solver: &'a mut DancingLinks,
+    solver: &'a mut PuzzleSolver,
 }
 
 impl<'a> Iterator for SolverIterator<'a> {

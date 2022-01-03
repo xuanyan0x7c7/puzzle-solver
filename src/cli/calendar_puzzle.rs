@@ -4,7 +4,7 @@ use std::process;
 use chrono::{Datelike, NaiveDate, Weekday};
 use clap::ArgMatches;
 
-use puzzle_solver::DancingLinks;
+use puzzle_solver::PuzzleSolver;
 
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Point {
@@ -38,7 +38,7 @@ impl Tile {
         Self::new(
             self.points
                 .iter()
-                .map(|point| Point {
+                .map(|&point| Point {
                     x: -point.y,
                     y: point.x,
                 })
@@ -50,7 +50,7 @@ impl Tile {
         Self::new(
             self.points
                 .iter()
-                .map(|point| Point {
+                .map(|&point| Point {
                     x: -point.x,
                     y: point.y,
                 })
@@ -61,7 +61,7 @@ impl Tile {
     fn gravity_support(&self) -> Vec<Point> {
         self.points
             .iter()
-            .map(|point| Point {
+            .map(|&point| Point {
                 x: point.x,
                 y: point.y + 1,
             })
@@ -195,7 +195,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         },
     ];
 
-    let mut solver = DancingLinks::new();
+    let mut solver = PuzzleSolver::new();
     let mut overlap_mapping = HashMap::<Point, Vec<usize>>::new();
     let mut tile_list = vec![];
     let mut tile_index = 0;
@@ -206,7 +206,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         for tile in tiles.iter() {
             for x in 0..board_size.1 {
                 for y in 0..board_size.0 {
-                    let can_put = tile.points.iter().all(|point| {
+                    let can_put = tile.points.iter().all(|&point| {
                         x + point.x < board_size.1
                             && y + point.y < board_size.0
                             && !holes.contains(&Point {
@@ -214,14 +214,14 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                                 y: y + point.y,
                             })
                     });
-                    let will_fall = tile.gravity_support().iter().all(|point| {
+                    let will_fall = tile.gravity_support().iter().all(|&point| {
                         holes.contains(&Point {
                             x: x + point.x,
                             y: y + point.y,
                         })
                     });
                     if can_put && (!has_gravity || !will_fall) {
-                        for point in tile.points.iter() {
+                        for &point in tile.points.iter() {
                             let overlapping_point = Point {
                                 x: x + point.x,
                                 y: y + point.y,
@@ -250,15 +250,15 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
 
     for list in overlap_mapping.values() {
         if !list.is_empty() {
-            solver.add_column(list);
+            solver.add_column(list.iter().map(|&r| r));
         }
     }
 
     let print_solution = |solution: &Vec<usize>| {
         let mut board = vec![vec![0; board_size.1 as usize]; board_size.0 as usize];
-        for row in solution.iter() {
-            let (tile, basic_tile_index, x, y) = &row_list[*row];
-            for point in tile.points.iter() {
+        for &row in solution.iter() {
+            let (tile, basic_tile_index, x, y) = &row_list[row];
+            for &point in tile.points.iter() {
                 board[(y + point.y) as usize][(x + point.x) as usize] = basic_tile_index + 1;
             }
         }
@@ -333,15 +333,15 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                 }
             }
             print!("│");
-            for (column_index, color) in row.iter().enumerate() {
+            for (column_index, &color) in row.iter().enumerate() {
                 if column_index != 0 {
-                    if row[column_index - 1] == *color {
+                    if row[column_index - 1] == color {
                         print!(" ");
                     } else {
                         print!("│");
                     }
                 }
-                print!(" {} ", if *color == 0 { "x" } else { " " });
+                print!(" {} ", if color == 0 { "x" } else { " " });
             }
             println!("│");
         }
