@@ -115,38 +115,38 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
                 row % board_size + 1;
         }
 
-        print!("+-");
+        print!("┌─");
         for column in 0..board_size {
             if column > 0 {
-                print!("-");
+                print!("─");
                 if column % box_size.1 == 0 {
-                    print!("+-");
+                    print!("┬─");
                 }
             }
-            print!("-");
+            print!("─");
         }
-        println!("-+");
+        println!("─┐");
 
         for row in 0..board_size {
             if row > 0 && row % box_size.0 == 0 {
-                print!("+-");
+                print!("├─");
                 for column in 0..board_size {
                     if column > 0 {
-                        print!("-");
+                        print!("─");
                         if column % box_size.1 == 0 {
-                            print!("+-");
+                            print!("┼─");
                         }
                     }
-                    print!("-");
+                    print!("─");
                 }
-                println!("-+");
+                println!("─┤");
             }
-            print!("| ");
+            print!("│ ");
             for column in 0..board_size {
                 if column > 0 {
                     print!(" ");
                     if column % box_size.1 == 0 {
-                        print!("| ");
+                        print!("│ ");
                     }
                 }
                 print!(
@@ -154,20 +154,20 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
                     alphabet_bytes[solution_board[row][column] - 1] as char
                 );
             }
-            println!(" |");
+            println!(" │");
         }
 
-        print!("+-");
+        print!("└─");
         for column in 0..board_size {
             if column > 0 {
-                print!("-");
+                print!("─");
                 if column % box_size.1 == 0 {
-                    print!("+-");
+                    print!("┴─");
                 }
             }
-            print!("-");
+            print!("─");
         }
-        println!("-+");
+        println!("─┘");
     };
 
     let mut solution_count = 0usize;

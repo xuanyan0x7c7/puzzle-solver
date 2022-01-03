@@ -266,7 +266,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         for column_index in 0..board_size.1 as usize {
             if column_index > 0 {
                 let row = &board[0];
-                if row[column_index - 1] == row[column_index] {
+                if row[column_index - 1] == row[column_index] && row[column_index] > 0 {
                     print!("─");
                 } else {
                     print!("┬");
@@ -277,7 +277,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         println!("┐");
         for (row_index, row) in board.iter().enumerate() {
             if row_index > 0 {
-                if board[row_index - 1][0] == board[row_index][0] {
+                if board[row_index - 1][0] == board[row_index][0] && board[row_index][0] > 0 {
                     print!("│");
                 } else {
                     print!("├");
@@ -288,8 +288,8 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                     if column_index > 0 {
                         let top_left = board[row_index - 1][column_index - 1];
                         let bottom_left = row[column_index - 1];
-                        if top_left == top_right {
-                            if bottom_left == bottom_right {
+                        if top_left == top_right && top_left > 0 {
+                            if bottom_left == bottom_right && bottom_left > 0 {
                                 print!("{}", if top_left == bottom_left { " " } else { "─" });
                             } else if top_left == bottom_left {
                                 print!("┌");
@@ -298,7 +298,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                             } else {
                                 print!("┬");
                             }
-                        } else if bottom_left == bottom_right {
+                        } else if bottom_left == bottom_right && bottom_left > 0 {
                             if top_left == bottom_left {
                                 print!("└");
                             } else if top_right == bottom_right {
@@ -306,19 +306,19 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                             } else {
                                 print!("┴");
                             }
-                        } else if top_left == bottom_left {
-                            if top_right == bottom_right {
+                        } else if top_left == bottom_left && top_left > 0 {
+                            if top_right == bottom_right && top_right > 0 {
                                 print!("│");
                             } else {
                                 print!("├");
                             }
-                        } else if top_right == bottom_right {
+                        } else if top_right == bottom_right && top_right > 0 {
                             print!("┤");
                         } else {
                             print!("┼");
                         }
                     }
-                    if top_right == bottom_right {
+                    if top_right == bottom_right && top_right > 0 {
                         print!("   ");
                     } else {
                         print!("───");
@@ -326,6 +326,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
                 }
                 if board[row_index - 1][board_size.1 as usize - 1]
                     == board[row_index][board_size.1 as usize - 1]
+                    && board[row_index][board_size.1 as usize - 1] > 0
                 {
                     println!("│");
                 } else {
@@ -335,7 +336,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
             print!("│");
             for (column_index, &color) in row.iter().enumerate() {
                 if column_index != 0 {
-                    if row[column_index - 1] == color {
+                    if row[column_index - 1] == color && color > 0 {
                         print!(" ");
                     } else {
                         print!("│");
@@ -349,7 +350,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
         for column_index in 0..board_size.1 as usize {
             if column_index > 0 {
                 let row = &board[board_size.0 as usize - 1];
-                if row[column_index - 1] == row[column_index] {
+                if row[column_index - 1] == row[column_index] && row[column_index] > 0 {
                     print!("─");
                 } else {
                     print!("┴");
