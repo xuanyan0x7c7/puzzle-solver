@@ -1,9 +1,7 @@
+use clap::ArgMatches;
+use puzzle_solver::PuzzleSolver;
 use std::io::stdin;
 use std::process;
-
-use clap::ArgMatches;
-
-use puzzle_solver::PuzzleSolver;
 
 pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     let size_string = subcommand.value_of("size").unwrap();
@@ -16,13 +14,13 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     } else if size_string == "25" {
         (5, 5)
     } else {
-        let l: Vec<&str> = size_string.split("x").collect();
+        let l: Vec<&str> = size_string.split('x').collect();
         let box_row = l[0].parse();
         let box_column = l[1].parse();
-        if box_row.is_err() || box_column.is_err() {
-            (3, 3)
+        if let (Ok(row), Ok(column)) = (box_row, box_column) {
+            (row, column)
         } else {
-            (box_row.unwrap(), box_column.unwrap())
+            (3, 3)
         }
     };
     let mut input = String::new();
@@ -98,12 +96,10 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             solver.add_column(list.into_iter());
         }
     }
-    for row in 0..board_size {
-        for column in 0..board_size {
-            if board[row][column] != 0 {
-                solver.select_row(
-                    (row * board_size + column) * board_size + (board[row][column] as usize - 1),
-                );
+    for (row, board_row) in board.iter().enumerate() {
+        for (column, &board_cell) in board_row.iter().enumerate() {
+            if board_cell != 0 {
+                solver.select_row((row * board_size + column) * board_size + (board_cell - 1));
             }
         }
     }

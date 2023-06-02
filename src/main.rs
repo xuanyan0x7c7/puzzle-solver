@@ -1,8 +1,7 @@
 mod cli;
 
-use clap::{App, Arg, SubCommand};
-
 use crate::cli::{solve_calendar_puzzle, solve_sudoku_puzzle};
+use clap::{App, Arg, SubCommand};
 
 fn main() {
     let matches = App::new("Puzzle Solver")

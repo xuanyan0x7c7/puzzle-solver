@@ -1,6 +1,5 @@
-use wasm_bindgen::prelude::*;
-
 use crate::PuzzleSolver as Solver;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct PuzzleSolver {
@@ -15,7 +14,16 @@ impl PuzzleSolver {
             solver: Solver::new(),
         }
     }
+}
 
+impl Default for PuzzleSolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[wasm_bindgen]
+impl PuzzleSolver {
     #[wasm_bindgen(js_name = newConditionalConstraint)]
     pub fn new_conditional_constraint(&mut self, holes: usize) -> usize {
         self.solver.new_conditional_constraint(holes)
@@ -27,21 +35,21 @@ impl PuzzleSolver {
     }
 
     #[wasm_bindgen(js_name = addColumn)]
-    pub fn add_column(&mut self, rows: &JsValue) {
-        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
+    pub fn add_column(&mut self, rows: JsValue) {
+        let transformed_rows: Vec<usize> = serde_wasm_bindgen::from_value(rows).unwrap();
         self.solver.add_column(transformed_rows.into_iter());
     }
 
     #[wasm_bindgen(js_name = addConditionalColumn)]
-    pub fn add_conditional_column(&mut self, rows: &JsValue, conditional_index: usize) {
-        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
+    pub fn add_conditional_column(&mut self, rows: JsValue, conditional_index: usize) {
+        let transformed_rows: Vec<usize> = serde_wasm_bindgen::from_value(rows).unwrap();
         self.solver
             .add_conditional_column(transformed_rows.into_iter(), conditional_index);
     }
 
     #[wasm_bindgen(js_name = addConstraint)]
-    pub fn add_constraint(&mut self, rows: &JsValue) {
-        let transformed_rows = rows.into_serde::<Vec<usize>>().unwrap();
+    pub fn add_constraint(&mut self, rows: JsValue) {
+        let transformed_rows: Vec<usize> = serde_wasm_bindgen::from_value(rows).unwrap();
         self.solver.add_constraint(transformed_rows.into_iter());
     }
 
@@ -58,7 +66,7 @@ impl PuzzleSolver {
     #[wasm_bindgen(js_name = solveNext)]
     pub fn solve_next(&mut self) -> JsValue {
         match self.solver.solve_next() {
-            Some(solution) => JsValue::from_serde(&solution).unwrap(),
+            Some(solution) => serde_wasm_bindgen::to_value(&solution).unwrap(),
             _ => JsValue::NULL,
         }
     }

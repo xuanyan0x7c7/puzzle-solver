@@ -1,10 +1,8 @@
-use std::collections::{HashMap, HashSet};
-use std::process;
-
 use chrono::{Datelike, NaiveDate, Weekday};
 use clap::ArgMatches;
-
 use puzzle_solver::PuzzleSolver;
+use std::collections::{HashMap, HashSet};
+use std::process;
 
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Point {
@@ -250,7 +248,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
 
     for list in overlap_mapping.values() {
         if !list.is_empty() {
-            solver.add_column(list.iter().map(|&r| r));
+            solver.add_column(list.iter().copied());
         }
     }
 
@@ -365,7 +363,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
     if show_all_solutions {
         for (solution_index, solution) in solver.solve().enumerate() {
             if solution_index != 0 {
-                println!("");
+                println!();
             }
             println!("{}:", solution_index + 1);
             print_solution(&solution);

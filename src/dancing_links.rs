@@ -70,7 +70,15 @@ impl PuzzleSolver {
         board.new_head_node();
         board
     }
+}
 
+impl Default for PuzzleSolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl PuzzleSolver {
     pub fn new_conditional_constraint(&mut self, holes: usize) -> usize {
         let index = self.condition_state_list.len();
         let head = self.new_head_node();
