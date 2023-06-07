@@ -93,7 +93,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
     let date = match NaiveDate::parse_from_str(date_string, "%Y-%m-%d") {
         Ok(date) => date,
         Err(_) => {
-            eprintln!("Invalid date: {}", date_string);
+            eprintln!("Invalid date: {date_string}");
             process::exit(1);
         }
     };
@@ -241,14 +241,12 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
             }
         }
         solver.add_rows(row_count);
-        for tile in tiles {
-            tile_list.push(tile);
-        }
+        tile_list.extend(tiles);
     }
 
-    for list in overlap_mapping.values() {
+    for list in overlap_mapping.into_values() {
         if !list.is_empty() {
-            solver.add_column(list.iter().copied());
+            solver.add_column(list.into_iter());
         }
     }
 
@@ -385,8 +383,7 @@ pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
     } else if count_solutions {
         println!();
         println!(
-            "Total {} solution{}.",
-            solution_count,
+            "Total {solution_count} solution{}.",
             if solution_count == 1 { "" } else { "s" }
         );
     }

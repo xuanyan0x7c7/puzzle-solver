@@ -15,9 +15,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         (5, 5)
     } else {
         let l: Vec<&str> = size_string.split('x').collect();
-        let box_row = l[0].parse();
-        let box_column = l[1].parse();
-        if let (Ok(row), Ok(column)) = (box_row, box_column) {
+        if let (Ok(row), Ok(column)) = (l[0].parse(), l[1].parse()) {
             (row, column)
         } else {
             (3, 3)
@@ -27,7 +25,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     let board_string = match stdin().read_line(&mut input) {
         Ok(_) => input.trim_end(),
         Err(error) => {
-            eprintln!("Error: {}", error);
+            eprintln!("Error: {error}");
             process::exit(1);
         }
     };
@@ -67,20 +65,16 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     }
     for row in 0..board_size {
         for number in 0..board_size {
-            let mut list = vec![];
-            for column in 0..board_size {
-                list.push((row * board_size + column) * board_size + number);
-            }
-            solver.add_column(list.into_iter());
+            solver.add_column(
+                (0..board_size).map(|column| (row * board_size + column) * board_size + number),
+            );
         }
     }
     for column in 0..board_size {
         for number in 0..board_size {
-            let mut list = vec![];
-            for row in 0..board_size {
-                list.push((row * board_size + column) * board_size + number);
-            }
-            solver.add_column(list.into_iter());
+            solver.add_column(
+                (0..board_size).map(|row| (row * board_size + column) * board_size + number),
+            );
         }
     }
     for sudoku_box in 0..board_size {
@@ -104,9 +98,9 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         }
     }
 
-    let print_solution = |solution: &Vec<usize>| {
+    let print_solution = |solution: Vec<usize>| {
         let mut solution_board = vec![vec![0; board_size]; board_size];
-        for &row in solution.iter() {
+        for row in solution {
             solution_board[row / board_size / board_size][row / board_size % board_size] =
                 row % board_size + 1;
         }
@@ -173,13 +167,13 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
                 println!();
             }
             println!("{}: ", solution_index + 1);
-            print_solution(&solution);
+            print_solution(solution);
             solution_count += 1;
         }
     } else {
         for (solution_index, solution) in solver.solve().enumerate() {
             if solution_index == 0 {
-                print_solution(&solution);
+                print_solution(solution);
             }
             solution_count += 1;
             if !count_solutions {
@@ -192,8 +186,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     } else if count_solutions {
         println!();
         println!(
-            "Total {} solution{}.",
-            solution_count,
+            "Total {solution_count} solution{}.",
             if solution_count == 1 { "" } else { "s" }
         );
     }

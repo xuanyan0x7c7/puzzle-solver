@@ -313,22 +313,24 @@ impl PuzzleSolver {
                             self.row_list
                                 .iter()
                                 .enumerate()
-                                .filter(|(_, row)| row.chosen)
-                                .map(|(index, _)| index)
+                                .filter_map(
+                                    |(index, row)| if row.chosen { Some(index) } else { None },
+                                )
                                 .collect(),
                         );
                     }
-                    for (index, state) in self.condition_state_list.iter_mut().enumerate() {
-                        if !state.chaining && state.current_holes == state.holes {
-                            state.chaining = true;
-                            self.state_stack.push(State::TriggerChaining(index));
-                        }
+                    for (index, state) in self
+                        .condition_state_list
+                        .iter_mut()
+                        .enumerate()
+                        .filter(|(_, state)| !state.chaining && state.current_holes == state.holes)
+                    {
+                        state.chaining = true;
+                        self.state_stack.push(State::TriggerChaining(index));
                     }
-                    let min_column = self.pick_best_column();
-                    if min_column.is_none() {
+                    let Some(best_column) = self.pick_best_column() else {
                         continue;
-                    }
-                    let best_column = min_column.unwrap();
+                    };
                     self.remove_column(best_column);
                     let column_head = self.column_list[best_column].head;
                     let row_node = self.down[column_head];
@@ -392,22 +394,24 @@ impl PuzzleSolver {
             }
             column_head = self.right[column_head];
         }
-        for state in self.condition_state_list.iter() {
-            if state.chaining {
-                let mut column_head = self.right[state.head];
-                while column_head != state.head {
-                    let column = self.node_list[column_head].column;
-                    let count = self.column_list[column].count;
-                    if count < min_count {
-                        if count == 1 {
-                            return Some(column);
-                        } else if count > 0 {
-                            min_count = count;
-                            min_column = column;
-                        }
+        for state in self
+            .condition_state_list
+            .iter()
+            .filter(|state| state.chaining)
+        {
+            let mut column_head = self.right[state.head];
+            while column_head != state.head {
+                let column = self.node_list[column_head].column;
+                let count = self.column_list[column].count;
+                if count < min_count {
+                    if count == 1 {
+                        return Some(column);
+                    } else if count > 0 {
+                        min_count = count;
+                        min_column = column;
                     }
-                    column_head = self.right[column_head];
                 }
+                column_head = self.right[column_head];
             }
         }
         Some(min_column)
