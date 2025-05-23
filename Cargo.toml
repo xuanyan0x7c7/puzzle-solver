@@ -2,7 +2,7 @@
 name = "puzzle_solver"
 version = "0.1.0"
 authors = ["Xuan Yan <xuanyan@xuanyan.ws>"]
-edition = "2021"
+edition = "2024"
 description = "A fast brute force puzzle solver using dancing links algorithm"
 keywords = ["puzzle", "solver", "sudoku", "dancing links"]
 repository = "https://github.com/xuanyan0x7c7/puzzle-solver"
@@ -14,9 +14,9 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 chrono = "0.4"
-clap = "2.33"
+clap = { version = "4.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.5.0"
+serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 
 [package.metadata.wasm-pack.profile.release]

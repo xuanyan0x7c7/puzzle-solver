@@ -1,5 +1,6 @@
-use crate::PuzzleSolver as Solver;
 use wasm_bindgen::prelude::*;
+
+use crate::PuzzleSolver as Solver;
 
 #[wasm_bindgen]
 pub struct PuzzleSolver {

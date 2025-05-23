@@ -1,26 +1,45 @@
-use clap::ArgMatches;
-use puzzle_solver::PuzzleSolver;
 use std::io::stdin;
 use std::process;
 
-pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
-    let size_string = subcommand.value_of("size").unwrap();
-    let box_size = if size_string == "4" {
-        (2, 2)
-    } else if size_string == "9" {
-        (3, 3)
-    } else if size_string == "16" {
-        (4, 4)
-    } else if size_string == "25" {
-        (5, 5)
-    } else {
-        let l: Vec<&str> = size_string.split('x').collect();
-        if let (Ok(row), Ok(column)) = (l[0].parse(), l[1].parse()) {
-            (row, column)
-        } else {
-            (3, 3)
+use clap::Args;
+
+use puzzle_solver::PuzzleSolver;
+
+#[derive(Args)]
+pub struct SudokuArgs {
+    /// Board size
+    #[arg(long, value_parser = parse_size)]
+    size: Option<(usize, usize)>,
+    /// Alphabet table
+    #[arg(long)]
+    alphabet: Option<String>,
+    /// Show all solutions
+    #[arg(short, long)]
+    all: bool,
+    /// Count Solutions
+    #[arg(long)]
+    count: bool,
+}
+
+fn parse_size(s: &str) -> Result<(usize, usize), String> {
+    match s {
+        "4" => Ok((2, 2)),
+        "9" => Ok((3, 3)),
+        "16" => Ok((4, 4)),
+        "25" => Ok((5, 5)),
+        _ => {
+            let l: Vec<&str> = s.split('x').collect();
+            if let (Ok(row), Ok(column)) = (l[0].parse(), l[1].parse()) {
+                Ok((row, column))
+            } else {
+                Err(format!("Invalid box size: {s}"))
+            }
         }
-    };
+    }
+}
+
+pub fn solve_sudoku_puzzle(args: &SudokuArgs) {
+    let (box_width, box_height) = args.size.unwrap_or((3,3));
     let mut input = String::new();
     let board_string = match stdin().read_line(&mut input) {
         Ok(_) => input.trim_end(),
@@ -29,18 +48,17 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             process::exit(1);
         }
     };
-    let alphabet = subcommand.value_of("alphabet");
-    let show_all_solutions = subcommand.is_present("all");
-    let count_solutions = subcommand.is_present("count");
+    let show_all_solutions = args.all;
+    let count_solutions = args.count;
 
-    let board_size = box_size.0 * box_size.1;
-    let alphabet = match alphabet {
-        Some(string) => string,
+    let board_size = box_width * box_height;
+    let alphabet = match &args.alphabet {
+        Some(string) => string.clone(),
         None => {
             if board_size > 9 {
-                "ABDCEFGHIJKLMNOPQRSTUVWXYZ"
+                "ABDCEFGHIJKLMNOPQRSTUVWXYZ".to_owned()
             } else {
-                "123456789"
+                "123456789".to_owned()
             }
         }
     };
@@ -80,13 +98,14 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
     for sudoku_box in 0..board_size {
         for number in 0..board_size {
             let mut list = vec![];
-            for r in 0..box_size.0 {
-                for c in 0..box_size.1 {
-                    let row = sudoku_box / box_size.0 * box_size.0 + r;
-                    let column = sudoku_box % box_size.0 * box_size.1 + c;
+            for r in 0..box_width {
+                for c in 0..box_height {
+                    let row = sudoku_box / box_width * box_width + r;
+                    let column = sudoku_box % box_width * box_height + c;
                     list.push((row * board_size + column) * board_size + number);
                 }
             }
+            eprintln!("{:?}", list);
             solver.add_column(list.into_iter());
         }
     }
@@ -109,7 +128,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         for column in 0..board_size {
             if column > 0 {
                 print!("─");
-                if column % box_size.1 == 0 {
+                if column % box_height == 0 {
                     print!("┬─");
                 }
             }
@@ -118,12 +137,12 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         println!("─┐");
 
         for row in 0..board_size {
-            if row > 0 && row % box_size.0 == 0 {
+            if row > 0 && row % box_width == 0 {
                 print!("├─");
                 for column in 0..board_size {
                     if column > 0 {
                         print!("─");
-                        if column % box_size.1 == 0 {
+                        if column % box_height == 0 {
                             print!("┼─");
                         }
                     }
@@ -135,7 +154,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
             for column in 0..board_size {
                 if column > 0 {
                     print!(" ");
-                    if column % box_size.1 == 0 {
+                    if column % box_height == 0 {
                         print!("│ ");
                     }
                 }
@@ -151,7 +170,7 @@ pub fn solve_sudoku_puzzle(subcommand: &ArgMatches) {
         for column in 0..board_size {
             if column > 0 {
                 print!("─");
-                if column % box_size.1 == 0 {
+                if column % box_height == 0 {
                     print!("┴─");
                 }
             }

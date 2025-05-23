@@ -1,8 +1,9 @@
-use chrono::{Datelike, NaiveDate, Weekday};
-use clap::ArgMatches;
-use puzzle_solver::PuzzleSolver;
 use std::collections::{HashMap, HashSet};
-use std::process;
+
+use chrono::{Datelike, Local, NaiveDate, Weekday};
+use clap::Args;
+
+use puzzle_solver::PuzzleSolver;
 
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Point {
@@ -88,18 +89,34 @@ fn generate_tiles(basic_tile: &Tile) -> Vec<Tile> {
     tile_set.into_iter().collect()
 }
 
-pub fn solve_calendar_puzzle(subcommand: &ArgMatches) {
-    let date_string = subcommand.value_of("date").unwrap();
-    let date = match NaiveDate::parse_from_str(date_string, "%Y-%m-%d") {
-        Ok(date) => date,
-        Err(_) => {
-            eprintln!("Invalid date: {date_string}");
-            process::exit(1);
-        }
-    };
-    let has_gravity = !subcommand.is_present("no-gravity");
-    let show_all_solutions = subcommand.is_present("all");
-    let count_solutions = subcommand.is_present("count");
+#[derive(Args)]
+pub struct CalendarArgs {
+    /// Date to solve
+    #[arg(value_parser = parse_date)]
+    date: Option<NaiveDate>,
+    /// No gravity
+    #[arg(long)]
+    no_gravity: bool,
+    /// Show all solutions
+    #[arg(short, long)]
+    all: bool,
+    /// Count Solutions
+    #[arg(long)]
+    count: bool,
+}
+
+fn parse_date(s: &str) -> Result<NaiveDate, String> {
+    match NaiveDate::parse_from_str(s, "%Y-%m-%d") {
+        Ok(date) => Ok(date),
+        Err(_) => Err(format!("Invalid date: {s}")),
+    }
+}
+
+pub fn solve_calendar_puzzle(args: &CalendarArgs) {
+    let date = args.date.unwrap_or_else(|| Local::now().date_naive());
+    let has_gravity = !args.no_gravity;
+    let show_all_solutions = args.all;
+    let count_solutions = args.count;
 
     let board_size = (9, 6);
     let basic_tile_list = vec![

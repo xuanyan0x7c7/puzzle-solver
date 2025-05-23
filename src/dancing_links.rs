@@ -56,7 +56,7 @@ pub struct PuzzleSolver {
 
 impl PuzzleSolver {
     pub fn new() -> Self {
-        let mut board = Self {
+        let mut board = PuzzleSolver {
             node_list: vec![],
             row_list: vec![],
             column_list: vec![],
@@ -74,7 +74,7 @@ impl PuzzleSolver {
 
 impl Default for PuzzleSolver {
     fn default() -> Self {
-        Self::new()
+        PuzzleSolver::new()
     }
 }
 
